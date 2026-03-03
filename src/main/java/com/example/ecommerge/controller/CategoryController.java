@@ -1,7 +1,9 @@
 package com.example.ecommerge.controller;
 
-import com.example.ecommerge.model.Category;
+import com.example.ecommerge.exceptions.NotFoundException;
+import com.example.ecommerge.model.CategoryDTO;
 import com.example.ecommerge.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,29 +15,31 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 public class CategoryController {
-    private static final String CATEGORY_PATH = "/api/public/category";
-    private static final String CATEGORY_PATH_ID =  CATEGORY_PATH+"/{categoryId}";
+    public static final String CATEGORY_PATH = "/api/public/category";
+    public static final String CATEGORY_PATH_ID =  CATEGORY_PATH+"/{categoryId}";
     private final CategoryService categoryService;
     @PutMapping(CATEGORY_PATH_ID)
-    public ResponseEntity<Category> updateCategory(@PathVariable UUID categoryId, @RequestBody Category category){
-        categoryService.updateCategory(categoryId,category);
+    public ResponseEntity<CategoryDTO> updateCategory(@Valid @PathVariable UUID categoryId, @RequestBody CategoryDTO categoryDTO){
+        categoryService.updateCategory(categoryId, categoryDTO).orElseThrow(NotFoundException::new);
         return ResponseEntity.noContent().build();
     }
     @GetMapping(CATEGORY_PATH)
-    public List<Category> getAllCategories()
+    public List<CategoryDTO> getAllCategories()
     {
         return categoryService.listCategories();
     }
     @PostMapping(CATEGORY_PATH)
-    public ResponseEntity<Category> handlePost(@RequestBody Category category)
+    public ResponseEntity<CategoryDTO> handlePost(@Valid @RequestBody CategoryDTO categoryDTO)
     {
-        Category savedCategory = categoryService.savedNewCategory(category);
-        return ResponseEntity.created(URI.create(CATEGORY_PATH + "/" + savedCategory.getCategoryId().toString()))
+        CategoryDTO savedCategoryDTO = categoryService.savedNewCategory(categoryDTO);
+        return ResponseEntity.created(URI.create(CATEGORY_PATH + "/" + savedCategoryDTO.getId().toString()))
                 .build();
     }
     @DeleteMapping(CATEGORY_PATH_ID)
-    public ResponseEntity<Category> deleteCategoryById(@PathVariable UUID categoryId){
-        categoryService.deleteCategory(categoryId);
+    public ResponseEntity<CategoryDTO> deleteCategoryById(@Valid @PathVariable UUID categoryId){
+        if(!categoryService.deleteCategory(categoryId)){
+            throw new NotFoundException();
+        }
         return ResponseEntity.noContent().build();
     }
 }
