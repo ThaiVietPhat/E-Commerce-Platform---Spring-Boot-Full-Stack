@@ -1,7 +1,7 @@
 package com.example.ecommerge.mappers;
 
 import com.example.ecommerge.entities.Category;
-import com.example.ecommerge.model.CategoryDTO;
+import com.example.ecommerge.models.CategoryDTO;
 import org.mapstruct.Mapper;
 
 @Mapper
